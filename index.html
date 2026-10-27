@@ -149,7 +149,6 @@
   <div id="bestline"></div>
 </div>
 
-<!-- PAUSE -->
 <div id="pauseScr" class="scr hide">
   <h1 class="title" style="font-size:36px">PAUSED</h1>
   <div class="menucard">
@@ -159,7 +158,7 @@
   </div>
 </div>
 
-<!-- GAME OVER -->
+
 <div id="overScr" class="scr hide">
   <h1 class="title" style="color:var(--red);text-shadow:0 0 24px rgba(255,90,77,.35)">K.I.A.</h1>
   <div class="subtitle">SOLDIER DOWN</div>
@@ -175,7 +174,6 @@
   </div>
 </div>
 
-<!-- ARMORY -->
 <div id="armory" class="scr hide">
   <div id="armHead"><h2>ARMORY</h2><span id="armCount"></span></div>
   <button class="btn sm" id="armClose">CLOSE [G]</button>
@@ -202,7 +200,6 @@ window.addEventListener('unhandledrejection', e => { $('err').textContent += '�
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-/* ---------------- Blender GLB asset pipeline ---------------- */
 const ASSETS = {
   ready: false, failed: false,
   protos: {},
@@ -254,18 +251,12 @@ function getPropShadowed(key, scale) {
   return g;
 }
 
-/* ============================================================
-   OPERATION BLACKOUT 3D
-   ============================================================ */
-
-/* ---------------- helpers ---------------- */
 const TAU = Math.PI * 2;
 const rnd = (a, b) => a + Math.random() * (b - a);
 const irnd = (a, b) => Math.floor(rnd(a, b + 1));
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
 
-/* ---------------- audio ---------------- */
 let AC = null, masterGain = null, noiseBuf = null, sndBudget = 8;
 function initAudio() {
   if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
@@ -327,12 +318,11 @@ function sndReload(){ noiseHit(0.05, 2000, 2, 0.2, 'highpass'); setTimeout(() =>
 function sndWave()  { tone(98, 0.5, 0.25, 'sawtooth'); tone(147, 0.5, 0.2, 'sawtooth'); }
 function sndJump()  { noiseHit(0.1, 800, 0.5, 0.15, 'highpass'); }
 
-/* ---------------- weapon data (40) ---------------- */
 const W = (id, name, cls, sfx, o) => Object.assign({ id, name, cls, sfx, dmg: 15, rpm: 600, mag: 30, res: 180, rel: 2,
   spr: 0.014, spd: 950, pellets: 1, pen: 0, auto: true, burst: 0, expl: null, homing: false, wt: 2, kick: 1.4, desc: '' }, o);
 
 const WEAPONS = [
-  /* PISTOLS */
+ 
   W('m9','M9 Beretta','PISTOL','pistol',{dmg:14,rpm:400,mag:15,res:150,rel:1.3,spr:.006,spd:850,auto:false,wt:1,kick:1,desc:'Standard US military 9mm sidearm. Reliable, light, always there when the rifle runs dry.'}),
   W('m1911','M1911A1','PISTOL','pistol',{dmg:23,rpm:320,mag:7,res:98,rel:1.5,spr:.006,spd:880,auto:false,wt:1,kick:1.6,desc:'Legendary .45 ACP service pistol. A century of stopping power in seven rounds.'}),
   W('m17','SIG M17','PISTOL','pistol',{dmg:16,rpm:430,mag:17,res:136,rel:1.4,spr:.0055,spd:880,auto:false,wt:1,kick:1.1,desc:'Modular 9mm US Army sidearm. High capacity and fast handling.'}),
@@ -359,25 +349,25 @@ const WEAPONS = [
   W('famas','FAMAS F1','RIFLE','rifle',{dmg:19,rpm:1000,burst:3,mag:25,res:225,rel:2.2,spr:.0065,spd:1010,wt:2.5,desc:'French bullpup "clairon". Screaming-fast 3-round bursts.'}),
   W('g36c','G36C','RIFLE','rifle',{dmg:18,rpm:780,mag:30,res:270,rel:2,spr:.008,spd:990,wt:2.4,desc:'Compact German carbine. Clean lines, clean shots.'}),
   W('an94','AN-94 Abakan','RIFLE','rifle',{dmg:21,rpm:1800,burst:2,mag:30,res:270,rel:2.3,spr:.005,spd:1010,wt:2.8,desc:'Hyperburst: two rounds leave the barrel before recoil wakes up.'}),
-  /* DMR */
+
   W('m14','M14','DMR','rifle',{dmg:35,rpm:420,mag:20,res:180,rel:2.4,spr:.005,spd:1150,auto:false,wt:3.2,desc:'Vietnam-era 7.62 marksman rifle. Wood, steel, and precision.'}),
   W('svd','SVD Dragunov','DMR','rifle',{dmg:43,rpm:300,mag:10,res:90,rel:2.6,spr:.0035,spd:1250,auto:false,wt:3.4,desc:'Soviet squad marksman rifle. Designed to reach out and break things.'}),
-  /* SNIPER */
+  
   W('m24','M24 SWS','SNIPER','sniper',{dmg:88,rpm:48,mag:5,res:50,rel:2.8,spr:.0012,spd:1500,auto:false,pen:2,wt:3.8,kick:4,desc:'Bolt-action 7.62 sniper system. One shot, one problem solved.'}),
   W('awm','AWM L115A3','SNIPER','sniper',{dmg:125,rpm:38,mag:5,res:45,rel:3.2,spr:.001,spd:1600,auto:false,pen:3,wt:4.2,kick:5,desc:'.338 Lapua Magnum. World-record long-range kills. Punches through crowds.'}),
   W('m82','Barrett M82A1','SNIPER','hmg',{dmg:155,rpm:55,mag:10,res:60,rel:3.4,spr:.0016,spd:1700,auto:false,pen:4,wt:5,kick:6,desc:'Anti-materiel .50 BMG. Technically a rifle, spiritually an artillery piece.'}),
-  /* SHOTGUN */
+ 
   W('benelli','Benelli M4 Super 90','SHOTGUN','shotgun',{dmg:12,rpm:78,mag:8,res:64,rel:3,pellets:8,spr:.018,spd:750,auto:false,wt:3,desc:'USMC combat shotgun. Semi-auto 12-gauge door-opener.'}),
   W('aa12','AA-12','SHOTGUN','shotgun',{dmg:10,rpm:300,mag:20,res:120,pellets:8,spr:.022,spd:740,wt:3.4,desc:'Fully automatic 12-gauge. A hand-held artillery barrage.'}),
-  /* LMG */
+ 
   W('m249','M249 SAW','LMG','lmg',{dmg:17,rpm:850,mag:100,res:400,rel:4.6,spr:.011,spd:1000,wt:4,desc:'Squad automatic weapon. Belt-fed 5.56 suppression on demand.'}),
   W('m60','M60','LMG','lmg',{dmg:23,rpm:550,mag:100,res:350,rel:5,spr:.01,spd:1020,wt:4.4,desc:'"The Pig." 7.62 belt-fed general purpose machine gun.'}),
   W('pkm','PKM','LMG','lmg',{dmg:26,rpm:650,mag:100,res:350,rel:5.2,spr:.01,spd:1040,wt:4.5,desc:'Russian 7.62 GPMG. Lighter than it looks, meaner than it sounds.'}),
-  /* HEAVY */
+  
   W('m134','M134 Minigun','HEAVY','hmg',{dmg:12,rpm:3000,mag:200,res:600,rel:6.5,spr:.017,spd:1050,wt:6,kick:.8,desc:'Six-barrel electric death at 3,000 RPM. Walk, do not run.'}),
   W('m2','M2 Browning .50','HEAVY','hmg',{dmg:120,rpm:500,mag:60,res:240,rel:7,spr:.006,spd:1400,pen:2,wt:6.5,kick:2.5,desc:'Ma Deuce. Since 1933 nothing on two legs argues with it.'}),
   W('mk19','Mk 19 GLM','HEAVY','launcher',{dmg:25,rpm:325,mag:32,res:96,rel:5.5,spr:.006,spd:620,wt:5.5,kick:2.5,expl:{r:90,dmg:90},desc:'40mm automatic grenade machine gun. A conveyor belt of detonations.'}),
-  /* LAUNCHER */
+ 
   W('rpg7','RPG-7','LAUNCHER','launcher',{dmg:30,rpm:30,mag:1,res:12,rel:3.5,spd:760,auto:false,wt:4.5,kick:6,expl:{r:110,dmg:140},desc:'The most distributed anti-tank weapon on Earth. Everyone speaks RPG.'}),
   W('at4','AT4 CS','LAUNCHER','launcher',{dmg:30,rpm:20,mag:1,res:6,rel:4.5,spd:800,auto:false,wt:5.5,kick:7,expl:{r:130,dmg:200},desc:'Swedish one-shot 84mm anti-armor tube. Fire, drop, walk away.'}),
   W('stinger','FIM-92 Stinger','LAUNCHER','launcher',{dmg:30,rpm:24,mag:1,res:8,rel:4,spd:620,auto:false,wt:5,kick:5,expl:{r:100,dmg:120},homing:true,desc:'IR-seeking MANPADS. Locks onto the nearest hostile and hunts it down.'})
@@ -385,7 +375,7 @@ const WEAPONS = [
 const CLASSES = ['PISTOL','SMG','RIFLE','DMR','SNIPER','SHOTGUN','LMG','HEAVY','LAUNCHER'];
 const CLASS_KEY = {}; CLASSES.forEach((c, i) => CLASS_KEY[c] = i + 1);
 
-/* ---------------- three.js scene ---------------- */
+
 if (typeof THREE === 'undefined') { $('err').textContent = '⚠ three.js failed to load — check internet connection.'; }
 const canvas = $('cv');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -398,7 +388,7 @@ renderer.toneMappingExposure = 1.12;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9fc3e8);
 scene.fog = new THREE.Fog(0xa9cbe8, 90, 360);
-/* gradient sky dome (canvas texture, follows camera in frame()) */
+
 const sky = (function () {
   const cv = document.createElement('canvas'); cv.width = 4; cv.height = 512;
   const cx = cv.getContext('2d');
@@ -435,7 +425,7 @@ scene.add(sun);
 scene.add(new THREE.AmbientLight(0x91a8c0, 0.6));
 scene.add(new THREE.HemisphereLight(0xbfe0ff, 0x6d8f4e, 1.0));
 
-/* ---------------- materials ---------------- */
+
 const M = {
   ground: new THREE.MeshLambertMaterial({ color: 0x55923e }),
   patch: new THREE.MeshLambertMaterial({ color: 0x437a31 }),
@@ -469,7 +459,7 @@ const M = {
   puff: new THREE.MeshBasicMaterial({ color: 0xc0b9a6, transparent: true, opacity: .7 }),
   frag: new THREE.MeshStandardMaterial({ color: 0x5f7033, roughness: .6, metalness: .3 })
 };
-/* per-instance color tint for GLB clones (their materials are shared by .clone()) */
+
 function tintProp(root, hex, mix) {
   const c = new THREE.Color(hex);
   root.traverse(o => {
@@ -487,8 +477,8 @@ function tintProp(root, hex, mix) {
 const CONTAINER_COLORS = [0xc94f3d, 0x2f86c2, 0xdf9a2b, 0x43a05a, 0x8460bd, 0x1fa08e];
 const BARREL_COLORS = [0xd84315, 0xe6a817, 0xc62828, 0xef6c00];
 
-/* ---------------- world ---------------- */
-const obstacles = []; // {mesh, box:Box3, kind, dead}
+
+const obstacles = []; 
 function addObstacle(mesh, kind) {
   mesh.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(mesh);
@@ -505,9 +495,9 @@ function box(x, z, w, h, d, mat, solid, yBase) {
   return m;
 }
 
-const movers = []; // trucks / radar / drone
+const movers = []; 
 function buildWorld() {
-  // ground
+ 
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(620, 620), M.ground);
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
   scene.add(ground);
@@ -516,7 +506,7 @@ function buildWorld() {
     p.rotation.x = -Math.PI / 2; p.position.set(rnd(-270, 270), 0.02, rnd(-270, 270));
     p.receiveShadow = true; scene.add(p);
   }
-  // perimeter fence posts + rails
+  
   for (let side = 0; side < 4; side++) {
     for (let i = -280; i <= 280; i += 8) {
       const post = getPropShadowed('fence_post');
@@ -542,7 +532,7 @@ function buildWorld() {
     else rail.position.set(280, 2.3, 0);
     scene.add(rail);
   }
-  // central bunker (four walls + roof)
+ 
   const bunker = getPropShadowed('bunker', 2.0);
   if (bunker) {
     bunker.position.set(0, 0, 48);
@@ -563,7 +553,7 @@ function buildWorld() {
     box(0, 40, 26, 4, 1.4, M.concrete, true);
     box(0, 48, 26, 0.6, 15, M.concreteD, false, 4);
   }
-  // watchtower
+ 
   const tx = -55, tz = -45;
   const tower = getPropShadowed('watchtower');
   if (tower) {
@@ -585,7 +575,7 @@ function buildWorld() {
     box(tx, tz - 2.9, 6, 1, 0.15, M.metalD, false, 8.9);
     box(tx, tz + 2.9, 6, 1, 0.15, M.metalD, false, 8.9);
   }
-  // shipping containers
+
   const contPos = [[-90, 10, 0.3], [70, -60, 1.1], [95, 45, 0.7], [-60, -95, 1.57], [20, -110, 0.2], [-30, 110, 1.05], [110, -15, 1.4], [-115, -40, 0.9]];
   contPos.forEach(([x, z, ry], i) => {
     const body = getPropShadowed('container');
@@ -600,7 +590,7 @@ function buildWorld() {
       scene.add(m); addObstacle(m);
     }
   });
-  // crate clusters
+  
   [[-35, 5], [30, 70], [65, 20], [-80, -70], [45, -35], [0, -60], [-10, 90], [85, 80], [-70, 55], [10, 15]].forEach(([x, z]) => {
     const n = irnd(2, 4);
     for (let i = 0; i < n; i++) {
@@ -615,7 +605,7 @@ function buildWorld() {
       }
     }
   });
-  // explosive barrels
+
   [[-20, -20], [40, 40], [-45, 30], [15, 55], [55, -10], [-60, -15], [25, -75], [-95, 65]].forEach(([x, z]) => {
     const b = getPropShadowed('barrel', 1.67);
     if (b) {
@@ -629,7 +619,7 @@ function buildWorld() {
     }
     if (b) addObstacle(b, 'barrel');
   });
-  // sandbag lines
+ 
   [[-50, 20, 0], [50, -25, Math.PI / 2], [-15, -40, Math.PI / 2], [80, 60, 0.4]].forEach(([x, z, ry]) => {
     const line = getPropShadowed('sandbags', 2.2);
     if (line) {
@@ -646,7 +636,7 @@ function buildWorld() {
       }
     }
   });
-  // moving structures
+  
   for (let i = 0; i < 3; i++) mkTruck(i);
   mkRadar();
   mkDrone();
@@ -739,7 +729,7 @@ function updateMovers(dt) {
     m.g.rotation.y = -m.dir + Math.PI / 2;
     for (const w of m.wheels) w.rotation.x -= (m.speed / 0.62) * dt;
     m.ob.box.setFromObject(m.g);
-    // push player out
+   
     const pdx = player.pos.x - m.g.position.x, pdz = player.pos.z - m.g.position.z;
     const pd = Math.hypot(pdx, pdz);
     if (pd < m.rad && pd > 0.01 && player.pos.y < 3) {
@@ -747,7 +737,7 @@ function updateMovers(dt) {
       player.pos.x += pdx / pd * push; player.pos.z += pdz / pd * push;
       damagePlayer(22 * dt);
     }
-    // push enemies out
+ 
     for (const e of enemies) {
       if (!e.alive) continue;
       const ex = e.s.g.position.x - m.g.position.x, ez = e.s.g.position.z - m.g.position.z;
@@ -762,7 +752,6 @@ function updateMovers(dt) {
   }
 }
 
-/* ---------------- humanoid soldier builder ---------------- */
 function limb(mat, w, h, d) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.castShadow = true;
@@ -779,7 +768,7 @@ function buildSoldierProc(hostile) {
   const skull = limb(M.skin, 0.24, 0.26, 0.24); head.add(skull);
   const helm = limb(helmet, 0.3, 0.14, 0.3); helm.position.y = 0.16; head.add(helm);
   const brim = limb(helmet, 0.3, 0.04, 0.12); brim.position.set(0, 0.1, 0.18); head.add(brim);
-  // arms: shoulder pivot -> upper -> elbow pivot -> forearm + hand
+
   const armL = new THREE.Group(); armL.position.set(-0.3, 0.52, 0); hip.add(armL);
   const armR = new THREE.Group(); armR.position.set(0.3, 0.52, 0); hip.add(armR);
   const upperL = limb(vest, 0.13, 0.34, 0.14); upperL.position.y = -0.17; armL.add(upperL);
@@ -790,7 +779,7 @@ function buildSoldierProc(hostile) {
   const foreR = limb(M.dark, 0.11, 0.32, 0.12); foreR.position.y = -0.16; lowerR.add(foreR);
   const handL = limb(M.skin, 0.1, 0.1, 0.1); handL.position.y = -0.36; lowerL.add(handL);
   const handR = limb(M.skin, 0.1, 0.1, 0.1); handR.position.y = -0.36; lowerR.add(handR);
-  // legs: hip pivot -> thigh -> knee -> shin + boot
+
   const legL = new THREE.Group(); legL.position.set(-0.13, -0.02, 0); hip.add(legL);
   const legR = new THREE.Group(); legR.position.set(0.13, -0.02, 0); hip.add(legR);
   const thighL = limb(cloth, 0.17, 0.44, 0.19); thighL.position.y = -0.22; legL.add(thighL);
@@ -801,12 +790,11 @@ function buildSoldierProc(hostile) {
   const shinRm = limb(M.dark, 0.14, 0.4, 0.15); shinRm.position.y = -0.2; shinR.add(shinRm);
   const bootL = limb(M.boots, 0.16, 0.12, 0.3); bootL.position.set(0, -0.45, 0.05); shinL.add(bootL);
   const bootR = limb(M.boots, 0.16, 0.12, 0.3); bootR.position.set(0, -0.45, 0.05); shinR.add(bootR);
-  // weapon mount at right hand
+ 
   const gunMount = new THREE.Group(); gunMount.position.set(0, -0.4, 0.06); lowerR.add(gunMount);
   return { g, hip, head, armL, armR, lowerL, lowerR, legL, legR, shinL, shinR, gunMount, torso };
 }
 
-// GLB soldier: bind exported empties onto the rig contract animateRig expects.
 function findPivot(root, name) {
   let f = null;
   root.traverse(o => { if (!f && o.name === name) f = o; });
@@ -830,9 +818,7 @@ function buildSoldier(hostile) {
     console.warn('soldier GLB pivots missing - procedural fallback');
     return buildSoldierProc(hostile);
   }
-  // GLB soldiers are authored facing -Z; the game aims root +Z at targets,
-  // so wrap the model PI-rotated: facing AND limb/aim axes then match the
-  // procedural rig conventions (see animateRig mirror factor).
+
   const root = new THREE.Group();
   glb.rotation.y = Math.PI;
   root.add(glb);
@@ -843,24 +829,23 @@ function buildSoldier(hostile) {
   return rig;
 }
 
-/* ---------------- gun mesh builder ---------------- */
 function buildGunMeshProc(w) {
   const g = new THREE.Group();
   const cls = w.cls;
   const len = cls === 'SNIPER' ? 1.05 : cls === 'DMR' ? 0.85 : cls === 'LMG' ? 0.85 : cls === 'HEAVY' ? 1.1 :
     cls === 'LAUNCHER' ? 1.15 : cls === 'RIFLE' ? 0.72 : cls === 'SHOTGUN' ? 0.8 : cls === 'SMG' ? 0.5 : 0.3;
   const wood = w.id === 'thompson' || w.id === 'm14' || w.id === 'svd' || w.id === 'rpg7';
-  // receiver
+ 
   const rec = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, len * 0.55), wood ? M.gunWood : M.gun);
   rec.position.z = -len * 0.05; rec.castShadow = true; g.add(rec);
-  // barrel
+ 
   const brl = new THREE.Mesh(new THREE.CylinderGeometry(cls === 'LAUNCHER' ? 0.055 : cls === 'SNIPER' ? 0.024 : 0.018,
     cls === 'LAUNCHER' ? 0.06 : 0.021, len * 0.62, 10), M.gunDark);
   brl.rotation.x = Math.PI / 2; brl.position.z = -len * 0.52; brl.castShadow = true; g.add(brl);
-  // grip
+  
   const grip = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.15, 0.07), M.gunD);
   grip.position.set(0, -0.12, 0.07); grip.rotation.x = -0.35; g.add(grip);
-  // magazine / ammo box
+
   if (cls === 'LMG' || w.id === 'm134') {
     const ammobox = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.22), M.gunD);
     ammobox.position.set(-0.11, -0.05, -0.05); g.add(ammobox);
@@ -868,19 +853,18 @@ function buildGunMeshProc(w) {
     const mag = new THREE.Mesh(new THREE.BoxGeometry(0.06, cls === 'PISTOL' ? 0.12 : 0.2, 0.09), M.gunD);
     mag.position.set(0, cls === 'PISTOL' ? -0.16 : -0.15, -0.06); mag.rotation.x = 0.22; g.add(mag);
   }
-  // stock
+ 
   if (cls !== 'PISTOL') {
     const stock = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.12, 0.3), wood ? M.gunWood : M.gunD);
     stock.position.set(0, -0.02, len * 0.3); g.add(stock);
   }
-  // scope
+  
   if (cls === 'SNIPER' || cls === 'DMR') {
     const sc = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.26, 10), M.gunDark);
     sc.rotation.x = Math.PI / 2; sc.position.set(0, 0.1, -0.06); g.add(sc);
     const lens = new THREE.Mesh(new THREE.CircleGeometry(0.024, 10), new THREE.MeshBasicMaterial({ color: 0x89c9ff }));
     lens.position.set(0, 0.1, 0.08); g.add(lens);
   }
-  // minigun cluster
   if (w.id === 'm134') {
     for (let i = 0; i < 6; i++) {
       const a = i / 6 * TAU;
@@ -915,7 +899,7 @@ function buildGunMeshProc(w) {
   return g;
 }
 
-// GLB guns: authored grip-at-origin, forward -Z, real-world scale (~1 unit = 1 m).
+
 const MUZZLE_Z = { PISTOL: 0.14, SMG: 0.28, RIFLE: 0.42, DMR: 0.52, SNIPER: 0.86,
   SHOTGUN: 0.45, LMG: 0.50, HEAVY: 0.90, LAUNCHER: 0.65 };
 function buildGunMesh(w) {
@@ -923,18 +907,17 @@ function buildGunMesh(w) {
   const g = key ? getProp(key) : null;
   if (g) {
     g.traverse(o => { if (o.isMesh) o.castShadow = true; });
-    // GLB guns are authored muzzle toward glTF +Z (Blender -Y at export)
+    
     const muzzle = new THREE.Object3D();
     muzzle.position.set(0, 0, (MUZZLE_Z[w.cls] || 0.6));
     g.add(muzzle);
     g.userData.muzzle = muzzle;
-    g.userData.gunFlipped = true; // viewmodel/mount add the PI turn
+    g.userData.gunFlipped = true; 
     return g;
   }
   return buildGunMeshProc(w);
 }
 
-/* ---------------- game state ---------------- */
 const game = {
   state: 'menu', wave: 0, score: 0, kills: 0, shake: 0, time: 0,
   waveState: 'idle', waveTimer: 0, spawnQueue: [], spawnTimer: 0,
@@ -956,7 +939,6 @@ const player = {
 const inv = WEAPONS.map(w => ({ mag: w.mag, res: w.res }));
 let startWeapon = 0;
 
-/* ---------------- viewmodel (FPS gun) ---------------- */
 const viewRoot = new THREE.Group();
 fpsCam.add(viewRoot);
 scene.add(fpsCam);
@@ -988,7 +970,6 @@ function updateViewmodel(dt) {
 }
 function kickViewmodel(w) { vm.kickZ = 0.05 + w.kick * 0.014; vm.kickP = 0.025 + w.kick * 0.02; }
 
-/* ---------------- third-person avatar ---------------- */
 let avatar = null, avatarGun = null;
 function buildAvatar() {
   avatar = buildSoldier(false);
@@ -1006,7 +987,7 @@ function setAvatarGun(w) {
 }
 function animateRig(rig, walk, mvAmt, aiming, pitch, dt) {
   const s = Math.sin(walk), c = Math.cos(walk);
-  const k = rig.mirror ? -1 : 1; // PI-rotated GLB rigs flip X/Z limb rotations
+  const k = rig.mirror ? -1 : 1; 
   rig.legL.rotation.x = k * s * 0.75 * mvAmt;
   rig.legR.rotation.x = -k * s * 0.75 * mvAmt;
   rig.shinL.rotation.x = k * Math.max(0, -c) * 0.9 * mvAmt;
@@ -1028,7 +1009,6 @@ function animateRig(rig, walk, mvAmt, aiming, pitch, dt) {
   }
 }
 
-/* ---------------- enemies ---------------- */
 let enemies = [], deathAnims = [];
 const ENEMY_TYPES = {
   grunt:  { hp: 30,  spd: 3.4, pts: 10, stopDist: 16, gunCls: 'RIFLE',  fire: 'single' },
@@ -1048,7 +1028,7 @@ function enemyGun(cls) {
       if (key && ASSETS.protos[key]) {
         const gm = getProp(key);
         gm.traverse(o => { if (o.isMesh) o.castShadow = true; });
-        gm.rotation.y = Math.PI; // muzzle +Z -> mount -Z (soldier forward)
+        gm.rotation.y = Math.PI; 
         const muz = new THREE.Object3D();
         muz.position.set(0, 0, 0.7);
         gm.add(muz);
@@ -1116,7 +1096,6 @@ function updateDeathAnims(dt) {
   }
 }
 
-/* ---------------- projectiles ---------------- */
 const projectiles = [];
 const tracerGeo = new THREE.CylinderGeometry(0.02, 0.02, 1.4, 5);
 const UP = new THREE.Vector3(0, 1, 0);
@@ -1151,12 +1130,12 @@ function updateProjectiles(dt) {
     for (let s = 0; s < steps && !dead; s++) {
       p.m.position.addScaledVector(p.vel, dt / steps);
       hitPos = p.m.position;
-      // ground
+     
       if (p.m.position.y < 0.05) {
         dead = true; impactPuff(p.m.position, 3);
         break;
       }
-      // obstacles
+   
       let blocked = false;
       for (const o of obstacles) {
         if (o.dead) continue;
@@ -1173,7 +1152,7 @@ function updateProjectiles(dt) {
         }
       }
       if (blocked) { dead = true; break; }
-      // entities
+    
       if (p.owner === 'p') {
         for (const e of enemies) {
           if (!e.alive || p.hits.includes(e)) continue;
@@ -1216,7 +1195,6 @@ function updateBarrelChain(dt) {
   }
 }
 
-/* ---------------- explosions & particles ---------------- */
 const parts = [], rings = [];
 const partGeo = new THREE.SphereGeometry(0.1, 6, 5);
 function explode(pos, r, dmg, owner) {
@@ -1437,7 +1415,7 @@ function updateCamera(dt) {
     const dir = camDir();
     const head = player.pos.clone().add(new THREE.Vector3(0, 1.55, 0));
     let boom = 4.4;
-    // keep camera out of walls
+   
     const backDir = dir.clone().multiplyScalar(-1);
     const probe = head.clone();
     for (let s = 0.4; s <= boom; s += 0.4) {
@@ -1457,7 +1435,6 @@ function updateCamera(dt) {
   }
 }
 
-/* ---------------- movement & collision ---------------- */
 function collideBody(pos, r, footY, headY) {
   for (const o of obstacles) {
     if (o.dead) continue;
@@ -1526,7 +1503,6 @@ function jump() {
   if (player.onGround) { player.vy = 7; player.onGround = false; sndJump(); }
 }
 
-/* ---------------- shooting ---------------- */
 function curW() { return WEAPONS[player.cur]; }
 function equip(i) {
   if (i === player.cur || game.state === 'armory') return;
@@ -1583,7 +1559,7 @@ function shootOnce(w, st) {
   const origin = muzzleWorldPos();
   const dir = camDir();
   const spr = w.spr + player.moveSpread + (w.pellets > 1 ? w.spr * 2 : 0);
-  // right vector for spread
+
   const right = new THREE.Vector3().crossVectors(dir, UP).normalize();
   for (let i = 0; i < w.pellets; i++) {
     const d = dir.clone()
@@ -1627,7 +1603,6 @@ function updateFiring(dt) {
   if (trigger) { fireWeapon(); player.clickQueued = false; }
 }
 
-/* ---------------- enemy AI ---------------- */
 function damagePlayer(d) {
   if (game.state !== 'playing' || player.inv > 0 || d <= 0) return;
   if (player.armor > 0) {
@@ -1707,7 +1682,7 @@ function updateEnemy(e, dt) {
   } else {
     mv = d > e.stopDist + 3 ? 1 : d < e.stopDist - 5 ? -0.6 : 0;
     if (mv === 0) {
-      // strafe
+     
       const strafe = Math.sin(game.time * 1.3 + e.walk) * 0.5;
       ep.x += dir.z * strafe * e.spd * dt;
       ep.z += -dir.x * strafe * e.spd * dt;
@@ -1723,7 +1698,7 @@ function updateEnemy(e, dt) {
   e.fireT -= dt;
   const pitch = Math.atan2((pp.y + 1.2) - (ep.y + 1.35), Math.max(d, 0.1));
   animateRig(e.s, e.walk, mv !== 0 ? 1 : 0, true, pitch, dt);
-  // separation
+ 
   for (const o of enemies) {
     if (o === e || !o.alive) continue;
     const dx = ep.x - o.s.g.position.x, dz = ep.z - o.s.g.position.z;
@@ -1733,7 +1708,7 @@ function updateEnemy(e, dt) {
       ep.z += dz / dd * (rr - dd) * 0.5;
     }
   }
-  // attacks
+
   const canSee = d < 95;
   if (e.fireMode === 'single' && canSee && e.fireT <= 0) {
     enemyShoot(e, rnd(-0.05, 0.05), 620, 7 * e.dmgMul);
@@ -1777,7 +1752,6 @@ function updateEnemy(e, dt) {
       e.burstT = 0;
     }
   }
-  // laser sight tracking
   if (e.laser && e.aimT > 0) updateLaser(e, pitch);
 }
 function updateLaser(e, pitch) {
@@ -1792,7 +1766,6 @@ function updateLaser(e, pitch) {
 }
 function hideLaser(e) { if (e.laser) e.laser.material.opacity = 0; }
 
-/* ---------------- waves ---------------- */
 function buildWave(n) {
   const q = [];
   let b = 5 + n * 2.6;
@@ -1861,7 +1834,6 @@ function showBanner(main, sub, red) {
   b.classList.add('show'); s.classList.add('show');
 }
 
-/* ---------------- HUD ---------------- */
 function updateWeaponHUD() {
   const w = curW(), st = inv[player.cur];
   $('wpnName').textContent = w.name.toUpperCase();
@@ -1918,7 +1890,7 @@ function renderMinimap() {
     const s = e.boss ? 5 : 2.5;
     mmCtx.fillRect(mx(e.s.g.position.x) - s / 2, my(e.s.g.position.z) - s / 2, s, s);
   }
-  // player arrow
+
   mmCtx.save();
   mmCtx.translate(cx, cy);
   mmCtx.rotate(-player.yaw);
@@ -1931,7 +1903,7 @@ function renderMinimap() {
   mmCtx.strokeRect(0.5, 0.5, 149, 149);
 }
 
-/* ---------------- armory ---------------- */
+
 function statBar(v, max) {
   return '<div class="sbar"><div style="width:' + clamp(v / max * 100, 2, 100) + '%"></div></div>';
 }
@@ -2005,7 +1977,6 @@ function closeArmory() {
   else { game.state = 'menu'; showScr('menuScr'); }
 }
 
-/* ---------------- screens & flow ---------------- */
 function showScr(id) {
   for (const s of ['menuScr', 'pauseScr', 'overScr', 'armory']) $(s).classList.add('hide');
   if (id) $(id).classList.remove('hide');
@@ -2016,7 +1987,7 @@ function toggleView() {
 }
 function startGame() {
   initAudio();
-  // clear entities
+ 
   for (const e of enemies) { if (e.laser) scene.remove(e.laser); scene.remove(e.s.g); }
   enemies = [];
   deathAnims.forEach(d => scene.remove(d.s.g));
@@ -2032,7 +2003,7 @@ function startGame() {
   rings.forEach(r => scene.remove(r.m));
   rings.length = 0;
   barrelChain.length = 0;
-  // reset player
+ 
   game.state = 'playing';
   game.wave = 0; game.score = 0; game.kills = 0; game.shake = 0;
   game.waveState = 'starting'; game.waveTimer = 2;
@@ -2099,7 +2070,7 @@ function onEscape() {
   else if (game.state === 'armory') closeArmory();
 }
 
-/* ---------------- input ---------------- */
+
 const keys = {};
 let pointerLocked = false, fallbackAim = false;
 function lockPointer() {
@@ -2173,7 +2144,6 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden && game.state === 'playing') pauseGame();
 });
 
-/* ---------------- buttons ---------------- */
 $('btnDeploy').onclick = startGame;
 $('btnRedeploy').onclick = startGame;
 $('btnResume').onclick = resumeGame;
@@ -2183,7 +2153,6 @@ $('btnArmoryMenu').onclick = () => openArmory('menu');
 $('btnArmoryPause').onclick = () => openArmory('paused');
 $('armClose').onclick = closeArmory;
 
-/* ---------------- main loop ---------------- */
 let lastT = performance.now(), menuT = 0, mmFrame = 0;
 function frame(now) {
   requestAnimationFrame(frame);
@@ -2221,7 +2190,7 @@ function frame(now) {
     updateMovers(dt);
     updateParts(dt);
   } else {
-    // paused / armory / gameover: fx settle, world keeps gentle motion
+   
     updateParts(dt * 0.4);
     updateDeathAnims(dt * 0.4);
     if (game.state !== 'menu' && cam === fpsCam) updateCamera(dt);
@@ -2230,7 +2199,6 @@ function frame(now) {
   renderer.render(scene, cam);
 }
 
-/* ---------------- boot ---------------- */
 loadAssets().then(() => {
   buildWorld();
   buildArmory();
