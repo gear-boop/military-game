@@ -1,21 +1,21 @@
 import bpy, math, os, sys, json
 from mathutils import Vector, Euler
 
-# ---------------- output dir ----------------
+
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 OUT = argv[0] if argv else os.path.join(os.getcwd(), 'assets')
 os.makedirs(OUT, exist_ok=True)
 
 D = math.radians
 
-# ---------------- helpers ----------------
+
 def clean():
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
     for block in list(bpy.data.meshes):
         if block.users == 0:
             bpy.data.meshes.remove(block)
-    # NOTE: materials are kept cached in M across builds (dangling refs otherwise)
+
 
 def mat(name, color, metallic=0.0, rough=0.8, emit=0.0):
     m = bpy.data.materials.get(name)
@@ -35,7 +35,7 @@ def box(name, size, origin=(0,0,0), rot=(0,0,0), material=None, parent=None):
     bpy.ops.mesh.primitive_cube_add(size=1, location=origin, rotation=rot)
     o = bpy.context.object
     o.name = name
-    o.scale = (size[0], size[1], size[2])  # blender Y-up -> export Z-up handled below
+    o.scale = (size[0], size[1], size[2])  
     if material: o.data.materials.append(material)
     if parent: o.parent = parent
     return o
@@ -84,13 +84,12 @@ def group(name, origin=(0,0,0)):
     e = empty(name, origin)
     return e
 
-# Blender is Z-up; game is Y-up. We author in Z-up (natural for Blender),
-# then rotate each top-level root by -90 deg X at export time via wrapper.
+
 def zup(obj):
     obj.rotation_euler = Euler((D(-90), 0, 0), 'XYZ')
     return obj
 
-# ---------------- palette ----------------
+
 M = {}
 M['gun_black']   = mat('gun_black',   (0.055,0.06,0.065), metallic=0.75, rough=0.38)
 M['gun_steel']   = mat('gun_steel',   (0.16,0.17,0.18),  metallic=0.85, rough=0.32)
@@ -125,11 +124,7 @@ M['armor']       = mat('armor',       (0.18,0.38,0.60),  metallic=0.0,  rough=0.
 M['ammo']        = mat('ammo',        (0.65,0.45,0.15),  metallic=0.0,  rough=0.5, emit=0.4)
 M['red_glow']    = mat('red_glow',    (1.0,0.15,0.1),    metallic=0.0,  rough=0.5, emit=3.0)
 
-# ============================================================
-#  GUNS — authored muzzle along -Y in Blender (forward = -Y),
-#  up = +Z, right = +X. Export maps to game (forward -Z).
-#  Scale: meters. Pistol ~0.24m, rifle ~0.8m long.
-# ============================================================
+
 def g_group(name):
     return group(name)
 
@@ -180,8 +175,7 @@ def add_muzzle_brake(g, r=0.016, L=0.05):
 def add_ammo_box(g):
     return box('ammobox', (0.07, 0.10, 0.07), origin=(-0.055, 0.02, -0.02), material=M['gun_green'], parent=g)
 
-def add_belt(g):
-    # simple ammo belt arc from box to receiver
+def add_belt(g):=
     for i in range(6):
         a = i/5
         y = 0.02 - a*0.06
@@ -192,7 +186,7 @@ def add_trigger(g):
     box('trigger_guard', (0.008, 0.03, 0.012), origin=(0, 0.045, -0.025), material=M['gun_black'], parent=g)
     box('trigger', (0.006, 0.008, 0.02), origin=(0, 0.045, -0.02), material=M['gun_steel'], parent=g)
 
-# --- individual weapon builds (24 distinct models cover 40 weapons) ---
+
 def build_pistol(g, big=False, tan=False):
     mtl = M['gun_poly_tan'] if tan else M['gun_poly']
     L = 0.24 if big else 0.19
@@ -308,7 +302,7 @@ def build_hmg(g):
     add_belt(g)
     box('spade', (0.02, 0.10, 0.16), origin=(0, 0.26, -0.05), material=M['gun_green'], parent=g)
 
-def build_glm(g):  # Mk19 40mm
+def build_glm(g):
     add_receiver(g, 0.34, H=0.08, W=0.05)
     add_barrel(g, 0.34, r=0.024, y0=-0.36)
     box('barrel_hous', (0.07, 0.14, 0.07), origin=(0, -0.22, 0), material=M['gun_dark'], parent=g)
@@ -335,21 +329,21 @@ def build_launcher(g, rpg=False, stinger=False):
         box('front_grip', (0.024, 0.03, 0.08), origin=(0, -0.30, -0.06), material=M['gun_poly'], parent=g)
 
 BUILDERS = {
-  # pistols
+
   'p_m9':      lambda g: build_pistol(g),
   'p_1911':    lambda g: build_pistol(g, big=False),
   'p_m17':     lambda g: build_pistol(g, tan=True),
   'p_deagle':  lambda g: build_pistol(g, big=True),
   'p_mk23':    lambda g: build_pistol(g, big=True, tan=True),
   'p_g18':     lambda g: build_pistol(g) and None or (add_mag(g, h=0.09), add_stock(g, 0.10)),
-  # smgs
+
   's_mp5':     lambda g: build_smg(g),
   's_mp7':     lambda g: build_smg(g),
   's_p90':     lambda g: build_smg(g, bullpup=True, helical=True),
   's_thompson':lambda g: (build_smg(g), [setattr(o, 'active_material', M['gun_wood']) for o in g.children if o.name.startswith(('receiver','stock','handguard'))]),
   's_bizon':   lambda g: build_smg(g, helical=True),
   's_vector':  lambda g: build_smg(g),
-  # rifles
+
   'r_m4a1':    lambda g: build_rifle(g),
   'r_m16a4':   lambda g: build_rifle(g) and None or add_scope(g, 0.12, r=0.014, y=-0.02),
   'r_ak47':    lambda g: build_rifle(g, wood=True) or add_mag(g, h=0.13, curved=True, yoff=0.01),
@@ -362,34 +356,31 @@ BUILDERS = {
   'r_famas':   lambda g: build_rifle(g, bullpup=True),
   'r_g36c':    lambda g: build_rifle(g) and None or add_scope(g, 0.10, r=0.013, y=-0.01),
   'r_an94':    lambda g: build_rifle(g) or add_mag(g, h=0.12, curved=True),
-  # dmr
+  
   'd_m14':     lambda g: build_dmr(g, wood=True),
   'd_svd':     lambda g: build_dmr(g, wood=True) or add_mag(g, h=0.10, curved=True),
-  # snipers
+
   'n_m24':     lambda g: build_sniper(g),
   'n_awm':     lambda g: build_sniper(g) or None,
   'n_m82':     lambda g: build_sniper(g, big=True),
-  # shotguns
+ 
   'sh_benelli':lambda g: build_shotgun(g),
   'sh_aa12':   lambda g: build_shotgun(g, auto=True) or add_mag(g, h=0.12),
-  # lmgs
+
   'l_m249':    lambda g: build_lmg(g),
   'l_m60':     lambda g: build_lmg(g),
   'l_pkm':     lambda g: build_lmg(g),
-  # heavy
+
   'h_m134':    lambda g: build_minigun(g),
   'h_m2':      lambda g: build_hmg(g),
   'h_mk19':    lambda g: build_glm(g),
-  # launchers
+  
   'la_rpg7':   lambda g: build_launcher(g, rpg=True),
   'la_at4':    lambda g: build_launcher(g),
   'la_stinger':lambda g: build_launcher(g, stinger=True),
 }
 
-# ============================================================
-#  SOLDIER — Z-up humanoid with named pivot empties
-#  Height ~1.8m. Feet at z=0. Game maps -Y forward.
-# ============================================================
+
 def build_soldier(hostile):
     root = group('hostile_soldier' if hostile else 'player_soldier')
     hip = empty('hip', (0, 0, 0.98), parent=root)
@@ -401,7 +392,7 @@ def build_soldier(hostile):
     head = box('head', (0.20, 0.20, 0.22), origin=(0, 0, 0.12), material=M['skin'], parent=neck)
     helmet = box('helmet', (0.24, 0.25, 0.13), origin=(0, 0, 0.235), material=M['helmet_h'] if hostile else M['helmet_f'], parent=neck)
     brim = box('brim', (0.24, 0.12, 0.03), origin=(0, -0.07, 0.185), material=M['helmet_h'] if hostile else M['helmet_f'], parent=neck)
-    # arms (Z-up: X side, Y forward, Z up; hang downward = -Z)
+
     def arm(side):
         sgn = -1 if side == 'L' else 1
         sh = empty('shoulder_'+side, (sgn*0.26, 0, 0.48), parent=hip)
@@ -411,7 +402,7 @@ def build_soldier(hostile):
         hand = box('hand_'+side, (0.08, 0.08, 0.10), origin=(0, -0.02, -0.30), material=M['skin'], parent=elbow)
         return sh, elbow
     shL, elL = arm('L'); shR, elR = arm('R')
-    # legs
+   
     def leg(side):
         sgn = -1 if side == 'L' else 1
         hp = empty('hipjoint_'+side, (sgn*0.11, 0, 0.0), parent=hip)
@@ -421,13 +412,11 @@ def build_soldier(hostile):
         foot = box('boot_'+side, (0.11, 0.26, 0.10), origin=(0, -0.05, -0.44), material=M['boot'], parent=knee)
         return hp, knee
     hpL, knL = leg('L'); hpR, knR = leg('R')
-    # gun mount at right hand
+
     gm = empty('gun_mount', (0.02, -0.06, -0.32), parent=elR)
     return root
 
-# ============================================================
-#  PROPS / STRUCTURES / VEHICLES
-# ============================================================
+
 def build_container(x=0, y=0, ry=0):
     root = group('container')
     body = box('body', (2.44, 6.06, 2.59), origin=(0, 0, 1.295), material=M['crate'], parent=root)
@@ -486,7 +475,7 @@ def build_radar():
     mast = cyl('mast', 0.22, 0.22, 4.5, origin=(0, 0, 7.7), verts=10, material=M['metal'], parent=root)
     dish_root = empty('dish_root', (0, 0, 10.2), parent=root)
     dish = sph('dish', 2.6, origin=(0, 0, 0), material=M['metal'], parent=dish_root, seg=18, ring=10)
-    # hollow the dish visually: scale z and tilt
+  
     dish.scale = (1, 1, 0.45)
     dish.rotation_euler = Euler((D(-40), 0, 0), 'XYZ')
     arm = box('arm', (0.1, 0.1, 1.6), origin=(0, 0, -0.9), material=M['metal_d'], parent=dish_root)
@@ -529,15 +518,8 @@ def rnd(a, b):
     import random
     return a + random.random() * (b - a)
 
-# ============================================================
-#  EXPORT STRATEGY
-#  One GLB per logical asset for lazy per-weapon loading + tiny total footprint.
-#  Every root is wrapped in a Y-up conversion: rotate root by -90 X so that
-#  Blender Z-up becomes glTF Y-up automatically (glTF exporter does this natively;
-#  we author in Z-up and let the exporter convert. Roots stay unrotated.)
-# ============================================================
+
 def export_glb(objs, name):
-    # deselect all, select given roots
     bpy.ops.object.select_all(action='DESELECT')
     def sel(o):
         o.select_set(True)
@@ -554,17 +536,14 @@ def export_glb(objs, name):
 
 results = {}
 
-# --- guns ---
 for key, builder in BUILDERS.items():
     clean()
     root = g_group('gun_' + key)
     builder(root)
-    # position pivot: grip in hand ~ origin; gun forward -Y; place at 0
     p = export_glb([root], 'gun_' + key)
     results[key] = p
     bpy.data.objects.remove(root, do_unlink=True)
 
-# --- soldier ---
 clean()
 sol = build_soldier(False)
 p = export_glb([sol], 'soldier_player')
@@ -574,7 +553,7 @@ sol_h = build_soldier(True)
 p = export_glb([sol_h], 'soldier_hostile')
 results['soldier_hostile'] = p
 
-# --- props ---
+
 clean()
 cont = build_container()
 p = export_glb([cont], 'container')
@@ -619,8 +598,7 @@ clean()
 fence = build_fence_post()
 p = export_glb([fence], 'fence_post')
 results['fence_post'] = p
-
-# --- weapons ID -> model mapping (written for the game to consume) ---
+-
 WEAPON_MODEL_MAP = {
   'm9':'p_m9','m1911':'p_1911','m17':'p_m17','deagle':'p_deagle','mk23':'p_mk23','g18':'p_g18',
   'mp5':'s_mp5','mp7':'s_mp7','p90':'s_p90','thompson':'s_thompson','bizon':'s_bizon','vector':'s_vector',
